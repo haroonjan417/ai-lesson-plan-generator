@@ -1,11 +1,196 @@
 import json
+from io import BytesIO
 
 import streamlit as st
+from docx import Document
 
 from config import GROQ_API_KEY
 from prompts.lesson_prompt import build_lesson_prompt
 from services.groq_service import GroqService
+def create_word_document(lesson_plan):
+    """Create a Word document from a generated lesson plan."""
 
+    document = Document()
+
+    lesson_info = lesson_plan["lesson_information"]
+
+    # Title
+    document.add_heading(
+        "AI Generated Lesson Plan",
+        level=0
+    )
+
+    # Lesson Information
+    document.add_heading(
+        "1. Lesson Information",
+        level=1
+    )
+
+    table = document.add_table(
+        rows=0,
+        cols=2
+    )
+
+    information = [
+        ("Curriculum", lesson_info["curriculum"]),
+        ("Grade / Class", lesson_info["grade"]),
+        ("Subject", lesson_info["subject"]),
+        ("Topic", lesson_info["topic"]),
+        ("Duration", f'{lesson_info["duration_minutes"]} minutes'),
+        ("Language", lesson_info["language"]),
+    ]
+
+    for label, value in information:
+        row = table.add_row().cells
+        row[0].text = label
+        row[1].text = str(value)
+
+    # Learning Objectives
+    document.add_heading(
+        "2. Learning Objectives",
+        level=1
+    )
+
+    for objective in lesson_plan["learning_objectives"]:
+        document.add_paragraph(
+            objective,
+            style="List Bullet"
+        )
+
+    # Prior Knowledge
+    document.add_heading(
+        "3. Prior Knowledge",
+        level=1
+    )
+
+    document.add_paragraph(
+        lesson_plan["prior_knowledge"]
+    )
+
+    # Materials
+    document.add_heading(
+        "4. Teaching & Learning Materials",
+        level=1
+    )
+
+    for material in lesson_plan["materials"]:
+        document.add_paragraph(
+            material,
+            style="List Bullet"
+        )
+
+    # Lesson Sequence
+    document.add_heading(
+        "5. Lesson Sequence",
+        level=1
+    )
+
+    sequence_table = document.add_table(
+        rows=1,
+        cols=5
+    )
+
+    headers = [
+        "Stage",
+        "Duration",
+        "Teacher Activity",
+        "Student Activity",
+        "Assessment / Check"
+    ]
+
+    for i, header in enumerate(headers):
+        sequence_table.rows[0].cells[i].text = header
+
+    for stage in lesson_plan["lesson_sequence"]:
+
+        row = sequence_table.add_row().cells
+
+        row[0].text = stage["stage"]
+        row[1].text = (
+            f'{stage["duration_minutes"]} minutes'
+        )
+        row[2].text = stage["teacher_activity"]
+        row[3].text = stage["student_activity"]
+        row[4].text = stage["assessment_check"]
+
+    # Assessment
+    document.add_heading(
+        "6. Assessment",
+        level=1
+    )
+
+    document.add_paragraph(
+        "Formative Assessment",
+        style="Heading 2"
+    )
+
+    for item in lesson_plan["assessment"]["formative"]:
+        document.add_paragraph(
+            item,
+            style="List Bullet"
+        )
+
+    document.add_paragraph(
+        "Summative Assessment",
+        style="Heading 2"
+    )
+
+    document.add_paragraph(
+        lesson_plan["assessment"]["summative"]
+    )
+
+    # Differentiation
+    document.add_heading(
+        "7. Differentiation",
+        level=1
+    )
+
+    document.add_paragraph(
+        "Support",
+        style="Heading 2"
+    )
+
+    document.add_paragraph(
+        lesson_plan["differentiation"]["support"]
+    )
+
+    document.add_paragraph(
+        "Extension",
+        style="Heading 2"
+    )
+
+    document.add_paragraph(
+        lesson_plan["differentiation"]["extension"]
+    )
+
+    # Homework
+    document.add_heading(
+        "8. Homework",
+        level=1
+    )
+
+    document.add_paragraph(
+        lesson_plan["homework"]
+    )
+
+    # Teacher Notes
+    document.add_heading(
+        "9. Teacher Notes",
+        level=1
+    )
+
+    document.add_paragraph(
+        lesson_plan["teacher_notes"]
+    )
+
+    # Save document in memory
+    file_stream = BytesIO()
+
+    document.save(file_stream)
+
+    file_stream.seek(0)
+
+    return file_stream
 
 # ---------------------------------------------------------
 # PAGE CONFIGURATION
@@ -380,7 +565,30 @@ if generate_button:
             st.write(
                 lesson_plan["teacher_notes"]
             )
+# -----------------------------------------
+# WORD DOWNLOAD
+# -----------------------------------------
 
+st.divider()
+
+st.subheader("📥 Download Lesson Plan")
+
+word_file = create_word_document(
+    lesson_plan
+)
+
+st.download_button(
+    label="📄 Download as Word",
+    data=word_file,
+    file_name=(
+        f"{lesson_info['topic']}_Lesson_Plan.docx"
+    ),
+    mime=(
+        "application/vnd.openxmlformats-officedocument."
+        "wordprocessingml.document"
+    ),
+    use_container_width=True
+)
 
         except Exception as e:
 
