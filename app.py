@@ -565,30 +565,31 @@ if generate_button:
             st.write(
                 lesson_plan["teacher_notes"]
             )
-# -----------------------------------------
-# WORD DOWNLOAD
-# -----------------------------------------
+            # -----------------------------------------
+            # WORD DOWNLOAD
+            # -----------------------------------------
 
-st.divider()
+            st.divider()
 
-st.subheader("📥 Download Lesson Plan")
+            st.subheader("📥 Download Lesson Plan")
 
-word_file = create_word_document(
-    lesson_plan
-)
+            word_file = create_word_document(
+                lesson_plan
+            )
 
-st.download_button(
-    label="📄 Download as Word",
-    data=word_file,
-    file_name=(
-        f"{lesson_info['topic']}_Lesson_Plan.docx"
-    ),
-    mime=(
-        "application/vnd.openxmlformats-officedocument."
-        "wordprocessingml.document"
-    ),
-    use_container_width=True
-)
+            st.download_button(
+                label="📄 Download as Word",
+                data=word_file,
+                file_name=(
+                    f"{lesson_info['topic']}_Lesson_Plan.docx"
+                ),
+                mime=(
+                    "application/vnd.openxmlformats-officedocument."
+                    "wordprocessingml.document"
+                ),
+                use_container_width=True
+            )
+
 
         except Exception as e:
 
