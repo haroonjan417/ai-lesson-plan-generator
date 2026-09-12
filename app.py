@@ -463,7 +463,31 @@ if generate_button:
                     f"- {material}"
                 )
 
+            # -----------------------------------------
+            # AUTOMATIC DURATION VALIDATION
+            # -----------------------------------------
 
+            total_stage_duration = sum(
+                stage["duration_minutes"]
+                for stage in lesson_plan["lesson_sequence"]
+            )
+
+            if total_stage_duration == duration:
+
+                st.success(
+                    f"⏱️ Duration validated: "
+                    f"{total_stage_duration} minutes "
+                    f"(matches the selected duration)."
+                )
+
+            else:
+
+                st.warning(
+                    f"⚠️ Duration mismatch: "
+                    f"Selected duration = {duration} minutes, "
+                    f"but lesson stages total "
+                    f"{total_stage_duration} minutes."
+                )
             # -----------------------------------------
             # LESSON SEQUENCE
             # -----------------------------------------
