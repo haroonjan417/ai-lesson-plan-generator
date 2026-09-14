@@ -191,7 +191,11 @@ def create_word_document(lesson_plan):
     file_stream.seek(0)
 
     return file_stream
-
+def format_av_aids(av_aids):
+    """Format selected AV aids for display."""
+    if not av_aids:
+        return "None specified"
+    return ", ".join(av_aids)
 # ---------------------------------------------------------
 # PAGE CONFIGURATION
 # ---------------------------------------------------------
