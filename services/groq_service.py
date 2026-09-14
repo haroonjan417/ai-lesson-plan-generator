@@ -10,17 +10,32 @@ LESSON_PLAN_SCHEMA = {
         "type": "object",
         "additionalProperties": False,
         "properties": {
-            "lesson_information": {
-                "type": "object",
-                "additionalProperties": False,
-                "properties": {
-                    "curriculum": {"type": "string"},
-                    "grade": {"type": "string"},
-                    "subject": {"type": "string"},
-                    "topic": {"type": "string"},
-                    "duration_minutes": {"type": "integer"},
-                    "language": {"type": "string"}
-                },
+           "lesson_information": {
+    "type": "object",
+    "additionalProperties": False,
+    "properties": {
+        "school_name": {"type": "string"},
+        "teacher_name": {"type": "string"},
+        "lesson_date": {"type": "string"},
+        "curriculum": {"type": "string"},
+        "grade": {"type": "string"},
+        "subject": {"type": "string"},
+        "topic": {"type": "string"},
+        "duration_minutes": {"type": "integer"},
+        "language": {"type": "string"}
+    },
+    "required": [
+        "school_name",
+        "teacher_name",
+        "lesson_date",
+        "curriculum",
+        "grade",
+        "subject",
+        "topic",
+        "duration_minutes",
+        "language"
+    ]
+},
                 "required": [
                     "curriculum",
                     "grade",
