@@ -89,7 +89,13 @@ GENERAL REQUIREMENTS
    Use each aid only when it meaningfully supports learning.
 22. Make teacher and student activities practical according to the
    available teaching aids.
-
+23. The final lesson plan must be concise enough to fit on one
+    standard A4 page when formatted as a professional lesson plan.
+24. Keep teacher activities concise and action-oriented.
+25. Keep student activities concise and specific.
+26. Keep assessment checks concise.
+27. Avoid lengthy explanations and paragraphs.
+28. Use short, practical phrases rather than verbose descriptions.
 
 LESSON STRUCTURE
 
