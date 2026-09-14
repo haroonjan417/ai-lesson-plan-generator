@@ -7,183 +7,429 @@ from docx import Document
 from config import GROQ_API_KEY
 from prompts.lesson_prompt import build_lesson_prompt
 from services.groq_service import GroqService
-def create_word_document(lesson_plan):
-    """Create a Word document from a generated lesson plan."""
+def create_word_document(lesson_plan, av_aids=None):
+    """Create a professional one-page A4 Word lesson plan."""
+
+    from docx import Document
+    from docx.shared import Inches, Pt
+    from docx.enum.text import WD_ALIGN_PARAGRAPH
+    from docx.enum.table import WD_TABLE_ALIGNMENT, WD_CELL_VERTICAL_ALIGNMENT
+    from docx.oxml import OxmlElement
+    from docx.oxml.ns import qn
 
     document = Document()
 
+    # ---------------------------------------------------------
+    # PAGE SETUP - A4
+    # ---------------------------------------------------------
+
+    section = document.sections[0]
+
+    section.page_width = Inches(8.27)
+    section.page_height = Inches(11.69)
+
+    section.top_margin = Inches(0.35)
+    section.bottom_margin = Inches(0.35)
+    section.left_margin = Inches(0.4)
+    section.right_margin = Inches(0.4)
+
+    # ---------------------------------------------------------
+    # DEFAULT FONT
+    # ---------------------------------------------------------
+
+    styles = document.styles
+
+    styles["Normal"].font.name = "Arial"
+    styles["Normal"].font.size = Pt(7.5)
+
+    # ---------------------------------------------------------
+    # HELPER FUNCTIONS
+    # ---------------------------------------------------------
+
+    def set_cell_shading(cell, fill):
+        """Set background color of a table cell."""
+
+        tc_pr = cell._tc.get_or_add_tcPr()
+
+        shd = OxmlElement("w:shd")
+        shd.set(qn("w:fill"), fill)
+
+        tc_pr.append(shd)
+
+    def set_cell_margins(cell, top=40, start=50, bottom=40, end=50):
+        """Set compact cell margins."""
+
+        tc = cell._tc
+        tc_pr = tc.get_or_add_tcPr()
+
+        tc_mar = tc_pr.first_child_found_in("w:tcMar")
+
+        if tc_mar is None:
+            tc_mar = OxmlElement("w:tcMar")
+            tc_pr.append(tc_mar)
+
+        for margin, value in [
+            ("top", top),
+            ("start", start),
+            ("bottom", bottom),
+            ("end", end)
+        ]:
+            node = tc_mar.find(qn(f"w:{margin}"))
+
+            if node is None:
+                node = OxmlElement(f"w:{margin}")
+                tc_mar.append(node)
+
+            node.set(qn("w:w"), str(value))
+            node.set(qn("w:type"), "dxa")
+
+    def set_repeat_table_header(row):
+        """Repeat table header if table extends to another page."""
+
+        tr_pr = row._tr.get_or_add_trPr()
+
+        tbl_header = OxmlElement("w:tblHeader")
+        tbl_header.set(qn("w:val"), "true")
+
+        tr_pr.append(tbl_header)
+
+    def add_compact_text(cell, text, bold=False, size=7.5):
+        """Add compact text to a table cell."""
+
+        cell.text = ""
+
+        paragraph = cell.paragraphs[0]
+
+        paragraph.paragraph_format.space_before = Pt(0)
+        paragraph.paragraph_format.space_after = Pt(0)
+        paragraph.paragraph_format.line_spacing = 1
+
+        run = paragraph.add_run(str(text))
+        run.bold = bold
+        run.font.name = "Arial"
+        run.font.size = Pt(size)
+
+        cell.vertical_alignment = WD_CELL_VERTICAL_ALIGNMENT.CENTER
+
+        set_cell_margins(cell)
+
+    # ---------------------------------------------------------
+    # LESSON INFORMATION
+    # ---------------------------------------------------------
+
     lesson_info = lesson_plan["lesson_information"]
 
-    # Title
-    document.add_heading(
-        "AI Generated Lesson Plan",
-        level=0
+    # ---------------------------------------------------------
+    # TITLE
+    # ---------------------------------------------------------
+
+    title = document.add_paragraph()
+
+    title.alignment = WD_ALIGN_PARAGRAPH.CENTER
+
+    title.paragraph_format.space_before = Pt(0)
+    title.paragraph_format.space_after = Pt(3)
+
+    run = title.add_run("LESSON PLAN")
+
+    run.bold = True
+    run.font.name = "Arial"
+    run.font.size = Pt(15)
+
+    # ---------------------------------------------------------
+    # SCHOOL / TEACHER / LESSON INFORMATION TABLE
+    # ---------------------------------------------------------
+
+    info_table = document.add_table(
+        rows=5,
+        cols=4
     )
 
-    # Lesson Information
-    document.add_heading(
-        "1. Lesson Information",
-        level=1
-    )
+    info_table.alignment = WD_TABLE_ALIGNMENT.CENTER
+    info_table.autofit = True
 
-    table = document.add_table(
-        rows=0,
-        cols=2
-    )
-
-    information = [
-        ("Curriculum", lesson_info["curriculum"]),
-        ("Grade / Class", lesson_info["grade"]),
-        ("Subject", lesson_info["subject"]),
-        ("Topic", lesson_info["topic"]),
-        ("Duration", f'{lesson_info["duration_minutes"]} minutes'),
-        ("Language", lesson_info["language"]),
+    info_data = [
+        (
+            "School",
+            lesson_info["school_name"],
+            "Date",
+            lesson_info["lesson_date"]
+        ),
+        (
+            "Teacher",
+            lesson_info["teacher_name"],
+            "Class",
+            lesson_info["grade"]
+        ),
+        (
+            "Subject",
+            lesson_info["subject"],
+            "Topic",
+            lesson_info["topic"]
+        ),
+        (
+            "Curriculum",
+            lesson_info["curriculum"],
+            "Duration",
+            f'{lesson_info["duration_minutes"]} min'
+        ),
+        (
+            "Language",
+            lesson_info["language"],
+            "AV / Teaching Aids",
+            ", ".join(av_aids) if av_aids else "None specified"
+        )
     ]
 
-    for label, value in information:
-        row = table.add_row().cells
-        row[0].text = label
-        row[1].text = str(value)
+    for row_index, row_data in enumerate(info_data):
 
-    # Learning Objectives
-    document.add_heading(
-        "2. Learning Objectives",
-        level=1
-    )
+        row = info_table.rows[row_index]
 
-    for objective in lesson_plan["learning_objectives"]:
-        document.add_paragraph(
-            objective,
-            style="List Bullet"
+        for col_index, value in enumerate(row_data):
+
+            cell = row.cells[col_index]
+
+            if col_index in [0, 2]:
+                set_cell_shading(cell, "D9EAF7")
+
+                add_compact_text(
+                    cell,
+                    value,
+                    bold=True,
+                    size=7
+                )
+
+            else:
+                add_compact_text(
+                    cell,
+                    value,
+                    size=7
+                )
+
+    # ---------------------------------------------------------
+    # OBJECTIVES
+    # ---------------------------------------------------------
+
+    heading = document.add_paragraph()
+
+    heading.paragraph_format.space_before = Pt(3)
+    heading.paragraph_format.space_after = Pt(1)
+
+    run = heading.add_run("LEARNING OBJECTIVES")
+    run.bold = True
+    run.font.name = "Arial"
+    run.font.size = Pt(9)
+
+    objectives = document.add_paragraph()
+
+    objectives.paragraph_format.space_before = Pt(0)
+    objectives.paragraph_format.space_after = Pt(2)
+    objectives.paragraph_format.line_spacing = 1
+
+    for index, objective in enumerate(
+        lesson_plan["learning_objectives"],
+        start=1
+    ):
+
+        run = objectives.add_run(
+            f"{index}. {objective}  "
         )
 
-    # Prior Knowledge
-    document.add_heading(
-        "3. Prior Knowledge",
-        level=1
-    )
+        run.font.name = "Arial"
+        run.font.size = Pt(7.5)
 
-    document.add_paragraph(
+    # ---------------------------------------------------------
+    # PRIOR KNOWLEDGE
+    # ---------------------------------------------------------
+
+    heading = document.add_paragraph()
+
+    heading.paragraph_format.space_before = Pt(1)
+    heading.paragraph_format.space_after = Pt(1)
+
+    run = heading.add_run("PRIOR KNOWLEDGE")
+
+    run.bold = True
+    run.font.name = "Arial"
+    run.font.size = Pt(9)
+
+    prior = document.add_paragraph(
         lesson_plan["prior_knowledge"]
     )
 
-    # Materials
-    document.add_heading(
-        "4. Teaching & Learning Materials",
-        level=1
-    )
+    prior.paragraph_format.space_before = Pt(0)
+    prior.paragraph_format.space_after = Pt(2)
+    prior.paragraph_format.line_spacing = 1
 
-    for material in lesson_plan["materials"]:
-        document.add_paragraph(
-            material,
-            style="List Bullet"
-        )
+    for run in prior.runs:
+        run.font.name = "Arial"
+        run.font.size = Pt(7.5)
 
-    # Lesson Sequence
-    document.add_heading(
-        "5. Lesson Sequence",
-        level=1
-    )
+    # ---------------------------------------------------------
+    # LESSON SEQUENCE TABLE
+    # ---------------------------------------------------------
+
+    heading = document.add_paragraph()
+
+    heading.paragraph_format.space_before = Pt(1)
+    heading.paragraph_format.space_after = Pt(1)
+
+    run = heading.add_run("LESSON SEQUENCE")
+
+    run.bold = True
+    run.font.name = "Arial"
+    run.font.size = Pt(9)
 
     sequence_table = document.add_table(
         rows=1,
         cols=5
     )
 
+    sequence_table.alignment = WD_TABLE_ALIGNMENT.CENTER
+    sequence_table.autofit = True
+
     headers = [
+        "Time",
         "Stage",
-        "Duration",
-        "Teacher Activity",
+        "Teacher / Learning Activity",
         "Student Activity",
-        "Assessment / Check"
+        "Assessment"
     ]
 
-    for i, header in enumerate(headers):
-        sequence_table.rows[0].cells[i].text = header
+    header_row = sequence_table.rows[0]
+
+    set_repeat_table_header(header_row)
+
+    for index, header in enumerate(headers):
+
+        cell = header_row.cells[index]
+
+        set_cell_shading(cell, "B4C7E7")
+
+        add_compact_text(
+            cell,
+            header,
+            bold=True,
+            size=7
+        )
 
     for stage in lesson_plan["lesson_sequence"]:
 
-        row = sequence_table.add_row().cells
+        row = sequence_table.add_row()
 
-        row[0].text = stage["stage"]
-        row[1].text = (
-            f'{stage["duration_minutes"]} minutes'
+        values = [
+            f'{stage["duration_minutes"]} min',
+            stage["stage"],
+            stage["teacher_activity"],
+            stage["student_activity"],
+            stage["assessment_check"]
+        ]
+
+        for index, value in enumerate(values):
+
+            add_compact_text(
+                row.cells[index],
+                value,
+                size=6.8
+            )
+
+    # ---------------------------------------------------------
+    # BOTTOM INFORMATION TABLE
+    # ---------------------------------------------------------
+
+    bottom_table = document.add_table(
+        rows=2,
+        cols=3
+    )
+
+    bottom_table.alignment = WD_TABLE_ALIGNMENT.CENTER
+    bottom_table.autofit = True
+
+    bottom_headers = [
+        "ASSESSMENT",
+        "DIFFERENTIATION",
+        "HOMEWORK"
+    ]
+
+    for index, header in enumerate(bottom_headers):
+
+        cell = bottom_table.rows[0].cells[index]
+
+        set_cell_shading(cell, "D9EAF7")
+
+        add_compact_text(
+            cell,
+            header,
+            bold=True,
+            size=7
         )
-        row[2].text = stage["teacher_activity"]
-        row[3].text = stage["student_activity"]
-        row[4].text = stage["assessment_check"]
 
-    # Assessment
-    document.add_heading(
-        "6. Assessment",
-        level=1
+    formative = lesson_plan["assessment"]["formative"]
+
+    assessment_text = "; ".join(formative)
+
+    summative = lesson_plan["assessment"]["summative"]
+
+    assessment_text = (
+        assessment_text
+        + " "
+        + "Summative: "
+        + summative
     )
 
-    document.add_paragraph(
-        "Formative Assessment",
-        style="Heading 2"
+    differentiation_text = (
+        "Support: "
+        + lesson_plan["differentiation"]["support"]
+        + " "
+        + "Extension: "
+        + lesson_plan["differentiation"]["extension"]
     )
 
-    for item in lesson_plan["assessment"]["formative"]:
-        document.add_paragraph(
-            item,
-            style="List Bullet"
-        )
-
-    document.add_paragraph(
-        "Summative Assessment",
-        style="Heading 2"
-    )
-
-    document.add_paragraph(
-        lesson_plan["assessment"]["summative"]
-    )
-
-    # Differentiation
-    document.add_heading(
-        "7. Differentiation",
-        level=1
-    )
-
-    document.add_paragraph(
-        "Support",
-        style="Heading 2"
-    )
-
-    document.add_paragraph(
-        lesson_plan["differentiation"]["support"]
-    )
-
-    document.add_paragraph(
-        "Extension",
-        style="Heading 2"
-    )
-
-    document.add_paragraph(
-        lesson_plan["differentiation"]["extension"]
-    )
-
-    # Homework
-    document.add_heading(
-        "8. Homework",
-        level=1
-    )
-
-    document.add_paragraph(
+    bottom_values = [
+        assessment_text,
+        differentiation_text,
         lesson_plan["homework"]
-    )
+    ]
 
-    # Teacher Notes
-    document.add_heading(
-        "9. Teacher Notes",
-        level=1
-    )
+    for index, value in enumerate(bottom_values):
 
-    document.add_paragraph(
+        add_compact_text(
+            bottom_table.rows[1].cells[index],
+            value,
+            size=6.7
+        )
+
+    # ---------------------------------------------------------
+    # TEACHER NOTES
+    # ---------------------------------------------------------
+
+    heading = document.add_paragraph()
+
+    heading.paragraph_format.space_before = Pt(2)
+    heading.paragraph_format.space_after = Pt(1)
+
+    run = heading.add_run("TEACHER NOTES")
+
+    run.bold = True
+    run.font.name = "Arial"
+    run.font.size = Pt(8.5)
+
+    notes = document.add_paragraph(
         lesson_plan["teacher_notes"]
     )
 
-    # Save document in memory
+    notes.paragraph_format.space_before = Pt(0)
+    notes.paragraph_format.space_after = Pt(0)
+    notes.paragraph_format.line_spacing = 1
+
+    for run in notes.runs:
+        run.font.name = "Arial"
+        run.font.size = Pt(6.8)
+
+    # ---------------------------------------------------------
+    # SAVE TO MEMORY
+    # ---------------------------------------------------------
+
     file_stream = BytesIO()
 
     document.save(file_stream)
@@ -191,7 +437,7 @@ def create_word_document(lesson_plan):
     file_stream.seek(0)
 
     return file_stream
-def format_av_aids(av_aids):
+    def format_av_aids(av_aids):
     """Format selected AV aids for display."""
     if not av_aids:
         return "None specified"
@@ -647,7 +893,8 @@ if generate_button:
             st.subheader("📥 Download Lesson Plan")
 
             word_file = create_word_document(
-                lesson_plan
+                lesson_plan,
+                av_aids=av_aids
             )
 
             st.download_button(
