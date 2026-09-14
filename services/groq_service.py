@@ -11,32 +11,23 @@ LESSON_PLAN_SCHEMA = {
         "additionalProperties": False,
         "properties": {
            "lesson_information": {
-    "type": "object",
-    "additionalProperties": False,
-    "properties": {
-        "school_name": {"type": "string"},
-        "teacher_name": {"type": "string"},
-        "lesson_date": {"type": "string"},
-        "curriculum": {"type": "string"},
-        "grade": {"type": "string"},
-        "subject": {"type": "string"},
-        "topic": {"type": "string"},
-        "duration_minutes": {"type": "integer"},
-        "language": {"type": "string"}
-    },
-    "required": [
-        "school_name",
-        "teacher_name",
-        "lesson_date",
-        "curriculum",
-        "grade",
-        "subject",
-        "topic",
-        "duration_minutes",
-        "language"
-    ]
-},
+                "type": "object",
+                "additionalProperties": False,
+                "properties": {
+                    "school_name": {"type": "string"},
+                    "teacher_name": {"type": "string"},
+                    "lesson_date": {"type": "string"},
+                    "curriculum": {"type": "string"},
+                    "grade": {"type": "string"},
+                    "subject": {"type": "string"},
+                    "topic": {"type": "string"},
+                    "duration_minutes": {"type": "integer"},
+                    "language": {"type": "string"}
+                },
                 "required": [
+                    "school_name",
+                    "teacher_name",
+                    "lesson_date",
                     "curriculum",
                     "grade",
                     "subject",
@@ -44,7 +35,7 @@ LESSON_PLAN_SCHEMA = {
                     "duration_minutes",
                     "language"
                 ]
-            },
+                            },
 
             "learning_objectives": {
                 "type": "array",
