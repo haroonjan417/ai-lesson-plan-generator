@@ -433,50 +433,76 @@ if generate_button:
 
             lesson_info = lesson_plan["lesson_information"]
           
-            st.markdown(
-                    f"**🏫 School:** {lesson_info['school_name']}"
-                        )
+            # -----------------------------------------
+            # ONE-PAGE LESSON PLAN
+            # -----------------------------------------
 
             st.markdown(
-                    f"**👨‍🏫 Teacher:** {lesson_info['teacher_name']}"
-                        )
+                "<h1 style='text-align: center;'>LESSON PLAN</h1>",
+                unsafe_allow_html=True
+            )
 
-            st.markdown(
-                    f"**📅 Date:** {lesson_info['lesson_date']}"
-                        )
-            info_col1, info_col2, info_col3 = st.columns(3)
+            # -----------------------------------------
+            # LESSON HEADER
+            # -----------------------------------------
 
-            with info_col1:
+            header_col1, header_col2 = st.columns(2)
+
+            with header_col1:
+
                 st.markdown(
-                    f"**Curriculum:** {lesson_info['curriculum']}"
+                    f"**🏫 School:** "
+                    f"{lesson_info['school_name']}"
                 )
 
                 st.markdown(
-                    f"**Grade:** {lesson_info['grade']}"
-                )
-
-            with info_col2:
-                st.markdown(
-                    f"**Subject:** {lesson_info['subject']}"
+                    f"**👨‍🏫 Teacher:** "
+                    f"{lesson_info['teacher_name']}"
                 )
 
                 st.markdown(
-                    f"**Topic:** {lesson_info['topic']}"
+                    f"**📚 Curriculum:** "
+                    f"{lesson_info['curriculum']}"
                 )
 
-            with info_col3:
                 st.markdown(
-                    f"**Duration:** "
+                    f"**📖 Subject:** "
+                    f"{lesson_info['subject']}"
+                )
+
+                st.markdown(
+                    f"**🎓 Class:** "
+                    f"{lesson_info['grade']}"
+                )
+
+            with header_col2:
+
+                st.markdown(
+                    f"**📅 Date:** "
+                    f"{lesson_info['lesson_date']}"
+                )
+
+                st.markdown(
+                    f"**📝 Topic:** "
+                    f"{lesson_info['topic']}"
+                )
+
+                st.markdown(
+                    f"**⏱️ Duration:** "
                     f"{lesson_info['duration_minutes']} minutes"
                 )
 
                 st.markdown(
-                    f"**Language:** {lesson_info['language']}"
+                    f"**🌐 Language:** "
+                    f"{lesson_info['language']}"
                 )
 
+                st.markdown(
+                    f"**🎬 AV / Teaching Aids:** "
+                    f"{format_av_aids(av_aids)}"
+                )
 
             st.divider()
-
 
             # -----------------------------------------
             # LEARNING OBJECTIVES
@@ -484,12 +510,11 @@ if generate_button:
 
             st.subheader("🎯 Learning Objectives")
 
-            for objective in lesson_plan["learning_objectives"]:
+            objectives_text = " • ".join(
+                lesson_plan["learning_objectives"]
+            )
 
-                st.markdown(
-                    f"- {objective}"
-                )
-
+            st.write(objectives_text)
 
             # -----------------------------------------
             # PRIOR KNOWLEDGE
@@ -501,21 +526,96 @@ if generate_button:
                 lesson_plan["prior_knowledge"]
             )
 
+            # -----------------------------------------
+            # LESSON SEQUENCE
+            # -----------------------------------------
+
+            st.subheader("📋 Lesson Sequence")
+
+            sequence_data = []
+
+            for stage in lesson_plan["lesson_sequence"]:
+
+                sequence_data.append(
+                    {
+                        "Time": (
+                            f"{stage['duration_minutes']} min"
+                        ),
+                        "Stage": stage["stage"],
+                        "Teacher / Learning Activity": (
+                            stage["teacher_activity"]
+                        ),
+                        "Student Activity": (
+                            stage["student_activity"]
+                        ),
+                        "Assessment": (
+                            stage["assessment_check"]
+                        )
+                    }
+                )
+
+            st.table(sequence_data)
 
             # -----------------------------------------
-            # MATERIALS
+            # ASSESSMENT & DIFFERENTIATION
             # -----------------------------------------
 
-            st.subheader("🧰 Teaching & Learning Materials")
+            assessment_col, differentiation_col = st.columns(2)
 
-            for material in lesson_plan["materials"]:
+            with assessment_col:
+
+                st.subheader("📝 Assessment")
+
+                formative = lesson_plan[
+                    "assessment"
+                ]["formative"]
+
+                for item in formative:
+                    st.markdown(f"- {item}")
 
                 st.markdown(
-                    f"- {material}"
+                    "**Summative:** "
+                    + lesson_plan["assessment"]["summative"]
+                )
+
+            with differentiation_col:
+
+                st.subheader("🔄 Differentiation")
+
+                st.markdown(
+                    "**Support:** "
+                    + lesson_plan["differentiation"]["support"]
+                )
+
+                st.markdown(
+                    "**Extension:** "
+                    + lesson_plan["differentiation"]["extension"]
                 )
 
             # -----------------------------------------
-            # AUTOMATIC DURATION VALIDATION
+            # HOMEWORK & TEACHER NOTES
+            # -----------------------------------------
+
+            homework_col, notes_col = st.columns(2)
+
+            with homework_col:
+
+                st.subheader("🏠 Homework")
+
+                st.write(
+                    lesson_plan["homework"]
+                )
+
+            with notes_col:
+
+                st.subheader("👨‍🏫 Teacher Notes")
+
+                st.write(
+                    lesson_plan["teacher_notes"]
+                )
+
+            # -----------------------------------------
+            # DURATION VALIDATION
             # -----------------------------------------
 
             total_stage_duration = sum(
@@ -538,109 +638,7 @@ if generate_button:
                     f"Selected duration = {duration} minutes, "
                     f"but lesson stages total "
                     f"{total_stage_duration} minutes."
-                )
-            # -----------------------------------------
-            # LESSON SEQUENCE
-            # -----------------------------------------
-
-            st.subheader("📋 Lesson Sequence")
-
-            for stage in lesson_plan["lesson_sequence"]:
-
-                with st.expander(
-                    f"{stage['stage']} "
-                    f"— {stage['duration_minutes']} minutes",
-                    expanded=True
-                ):
-
-                    st.markdown("**👨‍🏫 Teacher Activity**")
-
-                    st.write(
-                        stage["teacher_activity"]
-                    )
-
-                    st.markdown("**👩‍🎓 Student Activity**")
-
-                    st.write(
-                        stage["student_activity"]
-                    )
-
-                    st.markdown(
-                        "**✅ Assessment / Check for Understanding**"
-                    )
-
-                    st.write(
-                        stage["assessment_check"]
-                    )
-
-
-            # -----------------------------------------
-            # ASSESSMENT
-            # -----------------------------------------
-
-            st.subheader("📝 Assessment")
-
-            st.markdown("**Formative Assessment**")
-
-            for item in lesson_plan["assessment"]["formative"]:
-
-                st.markdown(
-                    f"- {item}"
-                )
-
-            st.markdown("**Summative Assessment**")
-
-            st.write(
-                lesson_plan["assessment"]["summative"]
-            )
-
-
-            # -----------------------------------------
-            # DIFFERENTIATION
-            # -----------------------------------------
-
-            st.subheader("🔄 Differentiation")
-
-            diff_col1, diff_col2 = st.columns(2)
-
-            with diff_col1:
-
-                st.markdown("### 🆘 Support")
-
-                st.write(
-                    lesson_plan["differentiation"]["support"]
-                )
-
-            with diff_col2:
-
-                st.markdown("### 🚀 Extension")
-
-                st.write(
-                    lesson_plan["differentiation"]["extension"]
-                )
-
-
-            # -----------------------------------------
-            # HOMEWORK
-            # -----------------------------------------
-
-            st.subheader("🏠 Homework")
-
-            st.write(
-                lesson_plan["homework"]
-            )
-
-
-            # -----------------------------------------
-            # TEACHER NOTES
-            # -----------------------------------------
-
-            st.subheader("👨‍🏫 Teacher Notes")
-
-            st.write(
-                lesson_plan["teacher_notes"]
-            )
-            # -----------------------------------------
+                )            # -----------------------------------------
             # WORD DOWNLOAD
             # -----------------------------------------
 
