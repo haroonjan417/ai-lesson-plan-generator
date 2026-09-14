@@ -4,7 +4,11 @@ def build_lesson_prompt(
     subject,
     duration,
     topic,
-    language="English"
+    language="English",
+    school_name="",
+    teacher_name="",
+    lesson_date="",
+    av_aids=None
 ):
     """
     Build a professional prompt for generating a lesson plan.
@@ -18,6 +22,15 @@ Your task is to create a professional, practical, teacher-ready
 lesson plan based on the information provided below.
 
 LESSON INFORMATION
+
+School:
+{school_name}
+
+Teacher:
+{teacher_name}
+
+Date:
+{lesson_date}
 
 Curriculum:
 {curriculum}
@@ -37,6 +50,8 @@ Class Duration:
 Language:
 {language}
 
+Available AV / Teaching Aids:
+{", ".join(av_aids) if av_aids else "No specific teaching aids selected"}
 
 GENERAL REQUIREMENTS
 
@@ -58,6 +73,22 @@ GENERAL REQUIREMENTS
 13. Do not invent curriculum standards that were not provided.
 14. If the curriculum information is general, create a curriculum-
    appropriate lesson without claiming a specific official standard.
+15. Use ONLY the AV / teaching aids provided by the teacher.
+16. Integrate the selected AV / teaching aids naturally into the
+   lesson sequence.
+17. Do not assume that any teaching aid is available unless it is
+   listed by the teacher.
+18. If slides are selected, include an appropriate slide-based
+   teaching activity where useful.
+19. If video is selected, include a suitable video-based activity
+   where useful.
+20. If whiteboard, marker, or blackboard is selected, use it for
+   explanation, demonstration, examples, or assessment where
+   appropriate.
+21. Do not force every selected teaching aid into the lesson.
+   Use each aid only when it meaningfully supports learning.
+22. Make teacher and student activities practical according to the
+   available teaching aids.
 
 
 LESSON STRUCTURE
