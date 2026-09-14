@@ -434,9 +434,9 @@ def create_word_document(lesson_plan, av_aids=None):
 
     document.save(file_stream)
 
-   file_stream.seek(0)
+    file_stream.seek(0)
 
-return file_stream
+    return file_stream
 
 
 def format_av_aids(av_aids):
