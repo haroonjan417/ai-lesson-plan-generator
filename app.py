@@ -295,6 +295,23 @@ with col2:
         ]
     )
 
+    av_aids = st.multiselect(
+        "🎬 AV / Teaching Aids",
+        [
+            "Slides / PowerPoint",
+            "Video",
+            "Projector",
+            "Whiteboard",
+            "Marker",
+            "Blackboard",
+            "Textbook",
+            "Pictures / Charts",
+            "Computer / Laptop",
+            "Audio",
+            "Other"
+        ],
+        placeholder="Select the teaching aids you will use"
+    )
 
 st.divider()
 
