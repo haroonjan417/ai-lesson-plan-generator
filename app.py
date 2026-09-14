@@ -233,10 +233,26 @@ if not GROQ_API_KEY:
 # LESSON INPUT FORM
 # ---------------------------------------------------------
 
+st.subheader("🏫 School & Teacher Information")
+
+school_name = st.text_input(
+    "School Name",
+    placeholder="e.g. Government High School"
+)
+
+teacher_name = st.text_input(
+    "Teacher Name",
+    placeholder="e.g. Muhammad Haroon Jan"
+)
+
+lesson_date = st.date_input(
+    "Lesson Date"
+)
+
+
 st.subheader("📝 Lesson Information")
 
 col1, col2 = st.columns(2)
-
 with col1:
 
     curriculum = st.text_input(
