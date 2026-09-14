@@ -428,17 +428,18 @@ if generate_button:
             st.subheader("📚 Lesson Plan")
 
             lesson_info = lesson_plan["lesson_information"]
-             st.markdown(
-    f"**🏫 School:** {lesson_info['school_name']}"
-)
+          
+            st.markdown(
+                    f"**🏫 School:** {lesson_info['school_name']}"
+                        )
 
-st.markdown(
-    f"**👨‍🏫 Teacher:** {lesson_info['teacher_name']}"
-)
+            st.markdown(
+                    f"**👨‍🏫 Teacher:** {lesson_info['teacher_name']}"
+                        )
 
-st.markdown(
-    f"**📅 Date:** {lesson_info['lesson_date']}"
-)
+            st.markdown(
+                    f"**📅 Date:** {lesson_info['lesson_date']}"
+                        )
             info_col1, info_col2, info_col3 = st.columns(3)
 
             with info_col1:
