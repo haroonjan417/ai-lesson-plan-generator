@@ -358,14 +358,17 @@ if generate_button:
             # -----------------------------------------
 
             prompt = build_lesson_prompt(
-                curriculum=curriculum,
-                grade=grade,
-                subject=subject,
-                duration=duration,
-                topic=topic,
-                language=language
-            )
-
+    curriculum=curriculum,
+    grade=grade,
+    subject=subject,
+    duration=duration,
+    topic=topic,
+    language=language,
+    school_name=school_name,
+    teacher_name=teacher_name,
+    lesson_date=str(lesson_date),
+    av_aids=av_aids
+)
 
             # -----------------------------------------
             # CONNECT TO GROQ
