@@ -128,14 +128,17 @@ Do not include explanations before or after the JSON.
 Use exactly this structure:
 
 {{
-    "lesson_information": {{
-        "curriculum": "",
-        "grade": "",
-        "subject": "",
-        "topic": "",
-        "duration_minutes": 0,
-        "language": ""
-    }},
+   "lesson_information": {{
+    "school_name": "",
+    "teacher_name": "",
+    "lesson_date": "",
+    "curriculum": "",
+    "grade": "",
+    "subject": "",
+    "topic": "",
+    "duration_minutes": 0,
+    "language": ""
+}},
     "learning_objectives": [
         ""
     ],
