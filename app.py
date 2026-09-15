@@ -571,23 +571,22 @@ set_cell_text(
 set_table_borders(bottom_table)
 
 
-    # ---------------------------------------------------------
-    # TEACHER NOTES
-    # ---------------------------------------------------------
-    teacher_notes = lesson_plan.get(
-        "teacher_notes",
-        ""
+# ---------------------------------------------------------
+# TEACHER NOTES
+# ---------------------------------------------------------
+teacher_notes = lesson_plan.get(
+    "teacher_notes",
+    ""
+)
+
+if teacher_notes:
+
+    add_section_heading("Teacher Notes")
+
+    add_compact_text(
+        teacher_notes,
+        size=9
     )
-
-    if teacher_notes:
-
-        add_section_heading("Teacher Notes")
-
-        add_compact_text(
-            teacher_notes,
-            size=9
-        )
-
     # ---------------------------------------------------------
     # DURATION VALIDATION
     # ---------------------------------------------------------
