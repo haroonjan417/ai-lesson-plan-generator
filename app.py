@@ -309,7 +309,7 @@ def create_word_document(lesson_plan, av_aids=None):
 
     header_row = sequence_table.rows[0]
 
-    for i, header in enumerate(headers):
+    for i, header_text in enumerate(headers):
 
         cell = header_row.cells[i]
         cell.width = column_widths[i]
@@ -323,7 +323,7 @@ def create_word_document(lesson_plan, av_aids=None):
             size=8.5
         )
 
-        header.paragraphs[0].alignment = WD_ALIGN_PARAGRAPH.CENTER
+        cell.paragraphs[0].alignment = WD_ALIGN_PARAGRAPH.CENTER
 
     set_repeat_table_header(header_row)
 
