@@ -318,7 +318,7 @@ def create_word_document(lesson_plan, av_aids=None):
 
         set_cell_text(
             cell,
-            header,
+            header_text,
             bold=True,
             size=8.5
         )
