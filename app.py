@@ -370,78 +370,205 @@ def create_word_document(lesson_plan, av_aids=None):
 
     set_table_borders(sequence_table)
 
-    # ---------------------------------------------------------
-    # ASSESSMENT / DIFFERENTIATION / HOMEWORK
-    # ---------------------------------------------------------
-    add_section_heading(
-        "Assessment | Differentiation | Homework"
+# ---------------------------------------------------------
+# ASSESSMENT / DIFFERENTIATION / HOMEWORK
+# ---------------------------------------------------------
+add_section_heading(
+    "Assessment, Differentiation & Homework"
+)
+
+# Get assessment data
+assessment_data = lesson_plan.get("assessment", "")
+
+if isinstance(assessment_data, dict):
+    formative = assessment_data.get("formative", [])
+    summative = assessment_data.get("summative", "")
+
+    if isinstance(formative, list):
+        formative_text = "; ".join(
+            str(item) for item in formative
+        )
+    else:
+        formative_text = str(formative)
+
+    assessment_text = (
+        f"Formative: {formative_text}"
     )
 
-    bottom_table = document.add_table(
-        rows=1,
-        cols=3
+    if summative:
+        assessment_text += (
+            f"  Summative: {summative}"
+        )
+
+else:
+    assessment_text = str(assessment_data)
+
+
+# Get differentiation data
+differentiation_data = lesson_plan.get(
+    "differentiation",
+    ""
+)
+
+if isinstance(differentiation_data, dict):
+
+    support = differentiation_data.get(
+        "support",
+        ""
     )
 
-    bottom_table.alignment = WD_TABLE_ALIGNMENT.CENTER
-    bottom_table.autofit = False
+    extension = differentiation_data.get(
+        "extension",
+        ""
+    )
 
-    bottom_headers = [
-        "Assessment",
-        "Differentiation",
-        "Homework"
-    ]
+    differentiation_text = ""
 
-    bottom_widths = [
-        Inches(2.42),
-        Inches(2.42),
-        Inches(2.38)
-    ]
-
-    bottom_values = [
-        lesson_plan.get("assessment", ""),
-        lesson_plan.get("differentiation", ""),
-        lesson_plan.get("homework", "")
-    ]
-
-    for i in range(3):
-
-        cell = bottom_table.rows[0].cells[i]
-
-        cell.width = bottom_widths[i]
-
-        set_cell_shading(
-            cell,
-            "EDEDED"
+    if support:
+        differentiation_text += (
+            f"Support: {support}"
         )
 
-        set_cell_text(
-            cell,
-            bottom_headers[i],
-            bold=True,
-            size=9
+    if extension:
+        if differentiation_text:
+            differentiation_text += "  "
+
+        differentiation_text += (
+            f"Extension: {extension}"
         )
 
-        cell.paragraphs[0].alignment = (
-            WD_ALIGN_PARAGRAPH.CENTER
-        )
+else:
+    differentiation_text = str(
+        differentiation_data
+    )
 
-    content_row = bottom_table.add_row()
 
-    for i in range(3):
+# Get homework
+homework_data = lesson_plan.get(
+    "homework",
+    ""
+)
 
-        cell = content_row.cells[i]
+if isinstance(homework_data, dict):
 
-        cell.width = bottom_widths[i]
+    homework_text = "; ".join(
+        f"{key}: {value}"
+        for key, value in homework_data.items()
+    )
 
-        set_cell_text(
-            cell,
-            bottom_values[i],
-            bold=False,
-            size=8.5
-        )
+else:
+    homework_text = str(homework_data)
 
-    set_table_borders(bottom_table)
 
+# Create 3-row x 2-column table
+bottom_table = document.add_table(
+    rows=0,
+    cols=2
+)
+
+bottom_table.alignment = WD_TABLE_ALIGNMENT.CENTER
+bottom_table.autofit = False
+
+
+bottom_widths = [
+    Inches(1.55),
+    Inches(5.67)
+]
+
+
+# -------------------------
+# Assessment row
+# -------------------------
+row = bottom_table.add_row()
+
+label_cell = row.cells[0]
+content_cell = row.cells[1]
+
+label_cell.width = bottom_widths[0]
+content_cell.width = bottom_widths[1]
+
+set_cell_shading(
+    label_cell,
+    "EDEDED"
+)
+
+set_cell_text(
+    label_cell,
+    "Assessment",
+    bold=True,
+    size=9.5
+)
+
+set_cell_text(
+    content_cell,
+    assessment_text,
+    bold=False,
+    size=9
+)
+
+
+# -------------------------
+# Differentiation row
+# -------------------------
+row = bottom_table.add_row()
+
+label_cell = row.cells[0]
+content_cell = row.cells[1]
+
+label_cell.width = bottom_widths[0]
+content_cell.width = bottom_widths[1]
+
+set_cell_shading(
+    label_cell,
+    "EDEDED"
+)
+
+set_cell_text(
+    label_cell,
+    "Differentiation",
+    bold=True,
+    size=9.5
+)
+
+set_cell_text(
+    content_cell,
+    differentiation_text,
+    bold=False,
+    size=9
+)
+
+
+# -------------------------
+# Homework row
+# -------------------------
+row = bottom_table.add_row()
+
+label_cell = row.cells[0]
+content_cell = row.cells[1]
+
+label_cell.width = bottom_widths[0]
+content_cell.width = bottom_widths[1]
+
+set_cell_shading(
+    label_cell,
+    "EDEDED"
+)
+
+set_cell_text(
+    label_cell,
+    "Homework",
+    bold=True,
+    size=9.5
+)
+
+set_cell_text(
+    content_cell,
+    homework_text,
+    bold=False,
+    size=9
+)
+
+set_table_borders(bottom_table)
     # ---------------------------------------------------------
     # TEACHER NOTES
     # ---------------------------------------------------------
