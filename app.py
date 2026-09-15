@@ -18,10 +18,11 @@ def create_word_document(lesson_plan, av_aids=None):
 
     document = Document()
 
-    # ---------------------------------------------------------
-    # PAGE SETUP - A4 PORTRAIT
-    # ---------------------------------------------------------
+    # =========================================================
+    # PAGE SETUP
+    # =========================================================
     section = document.sections[0]
+
     section.page_width = Inches(8.27)
     section.page_height = Inches(11.69)
 
@@ -30,18 +31,15 @@ def create_word_document(lesson_plan, av_aids=None):
     section.left_margin = Inches(0.50)
     section.right_margin = Inches(0.50)
 
-    # ---------------------------------------------------------
-    # GLOBAL FONT
-    # ---------------------------------------------------------
-    styles = document.styles
+    # =========================================================
+    # DEFAULT FONT
+    # =========================================================
+    document.styles["Normal"].font.name = "Arial"
+    document.styles["Normal"].font.size = Pt(10)
 
-    normal_style = styles["Normal"]
-    normal_style.font.name = "Arial"
-    normal_style.font.size = Pt(10)
-
-    # ---------------------------------------------------------
+    # =========================================================
     # HELPER FUNCTIONS
-    # ---------------------------------------------------------
+    # =========================================================
     def set_cell_shading(cell, fill):
         tc_pr = cell._tc.get_or_add_tcPr()
 
@@ -53,7 +51,13 @@ def create_word_document(lesson_plan, av_aids=None):
 
         shd.set(qn("w:fill"), fill)
 
-    def set_cell_margins(cell, top=70, start=80, bottom=70, end=80):
+    def set_cell_margins(
+        cell,
+        top=70,
+        start=80,
+        bottom=70,
+        end=80
+    ):
         tc = cell._tc
         tcPr = tc.get_or_add_tcPr()
 
@@ -67,7 +71,7 @@ def create_word_document(lesson_plan, av_aids=None):
             ("top", top),
             ("start", start),
             ("bottom", bottom),
-            ("end", end),
+            ("end", end)
         ]:
             node = tcMar.find(qn(f"w:{margin}"))
 
@@ -78,43 +82,54 @@ def create_word_document(lesson_plan, av_aids=None):
             node.set(qn("w:w"), str(value))
             node.set(qn("w:type"), "dxa")
 
-    def set_cell_text(cell, text, bold=False, size=10):
+    def set_cell_text(
+        cell,
+        text,
+        bold=False,
+        size=9
+    ):
         cell.text = ""
 
         paragraph = cell.paragraphs[0]
-        paragraph.alignment = WD_ALIGN_PARAGRAPH.LEFT
 
         paragraph.paragraph_format.space_before = Pt(0)
         paragraph.paragraph_format.space_after = Pt(0)
         paragraph.paragraph_format.line_spacing = 1.0
 
         run = paragraph.add_run(str(text))
+
         run.bold = bold
         run.font.name = "Arial"
         run.font.size = Pt(size)
 
-        cell.vertical_alignment = WD_CELL_VERTICAL_ALIGNMENT.CENTER
+        cell.vertical_alignment = (
+            WD_CELL_VERTICAL_ALIGNMENT.CENTER
+        )
 
         set_cell_margins(cell)
-
-    def set_repeat_table_header(row):
-        trPr = row._tr.get_or_add_trPr()
-        tblHeader = OxmlElement("w:tblHeader")
-        tblHeader.set(qn("w:val"), "true")
-        trPr.append(tblHeader)
 
     def set_table_borders(table):
         tbl = table._tbl
         tblPr = tbl.tblPr
 
-        borders = tblPr.first_child_found_in("w:tblBorders")
+        borders = tblPr.first_child_found_in(
+            "w:tblBorders"
+        )
 
         if borders is None:
             borders = OxmlElement("w:tblBorders")
             tblPr.append(borders)
 
-        for edge in ("top", "left", "bottom", "right", "insideH", "insideV"):
+        for edge in [
+            "top",
+            "left",
+            "bottom",
+            "right",
+            "insideH",
+            "insideV"
+        ]:
             tag = f"w:{edge}"
+
             element = borders.find(qn(tag))
 
             if element is None:
@@ -133,13 +148,15 @@ def create_word_document(lesson_plan, av_aids=None):
         paragraph.paragraph_format.space_after = Pt(2)
 
         run = paragraph.add_run(text.upper())
+
         run.bold = True
         run.font.name = "Arial"
         run.font.size = Pt(11)
 
-        return paragraph
-
-    def add_compact_text(text, size=9.5):
+    def add_compact_text(
+        text,
+        size=9.5
+    ):
         paragraph = document.add_paragraph()
 
         paragraph.paragraph_format.space_before = Pt(0)
@@ -147,44 +164,89 @@ def create_word_document(lesson_plan, av_aids=None):
         paragraph.paragraph_format.line_spacing = 1.0
 
         run = paragraph.add_run(str(text))
+
         run.font.name = "Arial"
         run.font.size = Pt(size)
 
-        return paragraph
+    # =========================================================
+    # LESSON INFORMATION
+    # =========================================================
+    lesson_info = lesson_plan.get(
+        "lesson_information",
+        {}
+    )
 
-    # ---------------------------------------------------------
-    # GET LESSON INFORMATION
-    # ---------------------------------------------------------
-    lesson_info = lesson_plan.get("lesson_information", {})
+    school_name = lesson_info.get(
+        "school_name",
+        ""
+    )
 
-    school_name = lesson_info.get("school_name", "")
-    teacher_name = lesson_info.get("teacher_name", "")
-    lesson_date = lesson_info.get("lesson_date", "")
-    curriculum = lesson_info.get("curriculum", "")
-    grade = lesson_info.get("grade", "")
-    subject = lesson_info.get("subject", "")
-    topic = lesson_info.get("topic", "")
-    duration = lesson_info.get("duration_minutes", "")
-    language = lesson_info.get("language", "")
+    teacher_name = lesson_info.get(
+        "teacher_name",
+        ""
+    )
 
-    # ---------------------------------------------------------
+    lesson_date = lesson_info.get(
+        "lesson_date",
+        ""
+    )
+
+    curriculum = lesson_info.get(
+        "curriculum",
+        ""
+    )
+
+    grade = lesson_info.get(
+        "grade",
+        ""
+    )
+
+    subject = lesson_info.get(
+        "subject",
+        ""
+    )
+
+    topic = lesson_info.get(
+        "topic",
+        ""
+    )
+
+    duration = lesson_info.get(
+        "duration_minutes",
+        ""
+    )
+
+    language = lesson_info.get(
+        "language",
+        ""
+    )
+
+    # =========================================================
     # TITLE
-    # ---------------------------------------------------------
+    # =========================================================
     title = document.add_paragraph()
 
     title.alignment = WD_ALIGN_PARAGRAPH.CENTER
+
     title.paragraph_format.space_before = Pt(0)
     title.paragraph_format.space_after = Pt(6)
 
-    run = title.add_run("LESSON PLAN")
-    run.bold = True
-    run.font.name = "Arial"
-    run.font.size = Pt(16)
+    title_run = title.add_run(
+        "LESSON PLAN"
+    )
 
-    # ---------------------------------------------------------
+    title_run.bold = True
+    title_run.font.name = "Arial"
+    title_run.font.size = Pt(16)
+
+    # =========================================================
     # LESSON INFORMATION TABLE
-    # ---------------------------------------------------------
-    info_table = document.add_table(rows=5, cols=4)
+    # =========================================================
+    info_table = document.add_table(
+        rows=5,
+        cols=4
+    )
+
     info_table.alignment = WD_TABLE_ALIGNMENT.CENTER
     info_table.autofit = False
 
@@ -192,35 +254,69 @@ def create_word_document(lesson_plan, av_aids=None):
         Inches(0.85),
         Inches(3.05),
         Inches(0.85),
-        Inches(3.05),
+        Inches(3.05)
     ]
 
     info_data = [
-        ("School", school_name, "Date", lesson_date),
-        ("Teacher", teacher_name, "Class", grade),
-        ("Subject", subject, "Topic", topic),
-        ("Curriculum", curriculum, "Duration", f"{duration} min"),
-        ("Language", language, "AV / Teaching Aids",
-         ", ".join(av_aids) if av_aids else "None specified"),
+        (
+            "School",
+            school_name,
+            "Date",
+            lesson_date
+        ),
+        (
+            "Teacher",
+            teacher_name,
+            "Class",
+            grade
+        ),
+        (
+            "Subject",
+            subject,
+            "Topic",
+            topic
+        ),
+        (
+            "Curriculum",
+            curriculum,
+            "Duration",
+            f"{duration} min"
+        ),
+        (
+            "Language",
+            language,
+            "AV / Teaching Aids",
+            ", ".join(av_aids)
+            if av_aids
+            else "None specified"
+        )
     ]
 
-    for row_index, row_data in enumerate(info_data):
-
+    for row_index, row_data in enumerate(
+        info_data
+    ):
         row = info_table.rows[row_index]
 
-        for col_index, value in enumerate(row_data):
-
+        for col_index, value in enumerate(
+            row_data
+        ):
             cell = row.cells[col_index]
+
             cell.width = info_widths[col_index]
 
             if col_index in [0, 2]:
-                set_cell_shading(cell, "EDEDED")
+                set_cell_shading(
+                    cell,
+                    "EDEDED"
+                )
+
                 set_cell_text(
                     cell,
                     value,
                     bold=True,
                     size=9
                 )
+
             else:
                 set_cell_text(
                     cell,
@@ -231,37 +327,52 @@ def create_word_document(lesson_plan, av_aids=None):
 
     set_table_borders(info_table)
 
-    # ---------------------------------------------------------
+    # =========================================================
     # LEARNING OBJECTIVES
-    # ---------------------------------------------------------
-    add_section_heading("Learning Objectives")
+    # =========================================================
+    add_section_heading(
+        "Learning Objectives"
+    )
 
-    objectives = lesson_plan.get("learning_objectives", [])
+    objectives = lesson_plan.get(
+        "learning_objectives",
+        []
+    )
 
     if isinstance(objectives, list):
 
-        for i, objective in enumerate(objectives, start=1):
+        for index, objective in enumerate(
+            objectives,
+            start=1
+        ):
             paragraph = document.add_paragraph()
 
-            paragraph.paragraph_format.left_indent = Inches(0.10)
+            paragraph.paragraph_format.left_indent = (
+                Inches(0.10)
+            )
+
             paragraph.paragraph_format.space_before = Pt(0)
             paragraph.paragraph_format.space_after = Pt(1)
             paragraph.paragraph_format.line_spacing = 1.0
 
             run = paragraph.add_run(
-                f"{i}. {objective}"
+                f"{index}. {objective}"
             )
 
             run.font.name = "Arial"
             run.font.size = Pt(9.5)
 
     else:
-        add_compact_text(objectives)
+        add_compact_text(
+            objectives
+        )
 
-    # ---------------------------------------------------------
+    # =========================================================
     # PRIOR KNOWLEDGE
-    # ---------------------------------------------------------
-    add_section_heading("Prior Knowledge")
+    # =========================================================
+    add_section_heading(
+        "Prior Knowledge"
+    )
 
     prior_knowledge = lesson_plan.get(
         "prior_knowledge",
@@ -273,10 +384,12 @@ def create_word_document(lesson_plan, av_aids=None):
         size=9.5
     )
 
-    # ---------------------------------------------------------
+    # =========================================================
     # LESSON SEQUENCE
-    # ---------------------------------------------------------
-    add_section_heading("Lesson Sequence")
+    # =========================================================
+    add_section_heading(
+        "Lesson Sequence"
+    )
 
     sequence = lesson_plan.get(
         "lesson_sequence",
@@ -288,7 +401,10 @@ def create_word_document(lesson_plan, av_aids=None):
         cols=5
     )
 
-    sequence_table.alignment = WD_TABLE_ALIGNMENT.CENTER
+    sequence_table.alignment = (
+        WD_TABLE_ALIGNMENT.CENTER
+    )
+
     sequence_table.autofit = False
 
     headers = [
@@ -304,17 +420,22 @@ def create_word_document(lesson_plan, av_aids=None):
         Inches(1.00),
         Inches(2.55),
         Inches(1.85),
-        Inches(1.22),
+        Inches(1.22)
     ]
 
     header_row = sequence_table.rows[0]
 
-    for i, header_text in enumerate(headers):
+    for index, header_text in enumerate(
+        headers
+    ):
+        cell = header_row.cells[index]
 
-        cell = header_row.cells[i]
-        cell.width = column_widths[i]
+        cell.width = column_widths[index]
 
-        set_cell_shading(cell, "D9E2F3")
+        set_cell_shading(
+            cell,
+            "D9E2F3"
+        )
 
         set_cell_text(
             cell,
@@ -323,9 +444,9 @@ def create_word_document(lesson_plan, av_aids=None):
             size=8.5
         )
 
-        cell.paragraphs[0].alignment = WD_ALIGN_PARAGRAPH.CENTER
-
-    set_repeat_table_header(header_row)
+        cell.paragraphs[0].alignment = (
+            WD_ALIGN_PARAGRAPH.CENTER
+        )
 
     for stage in sequence:
 
@@ -348,13 +469,15 @@ def create_word_document(lesson_plan, av_aids=None):
             stage.get(
                 "assessment",
                 ""
-            ),
+            )
         ]
 
-        for i, value in enumerate(values):
+        for index, value in enumerate(
+            values
+        ):
+            cell = row.cells[index]
 
-            cell = row.cells[i]
-            cell.width = column_widths[i]
+            cell.width = column_widths[index]
 
             set_cell_text(
                 cell,
@@ -363,246 +486,251 @@ def create_word_document(lesson_plan, av_aids=None):
                 size=8.5
             )
 
-            if i == 0:
+            if index == 0:
                 cell.paragraphs[0].alignment = (
                     WD_ALIGN_PARAGRAPH.CENTER
                 )
 
-    set_table_borders(sequence_table)
+    set_table_borders(
+        sequence_table
+    )
 
-# ---------------------------------------------------------
-# ASSESSMENT / DIFFERENTIATION / HOMEWORK
-# ---------------------------------------------------------
-add_section_heading(
-    "Assessment, Differentiation & Homework"
-)
+    # =========================================================
+    # ASSESSMENT
+    # =========================================================
+    add_section_heading(
+        "Assessment, Differentiation & Homework"
+    )
 
-# Get assessment data
-assessment_data = lesson_plan.get("assessment", "")
+    assessment_data = lesson_plan.get(
+        "assessment",
+        ""
+    )
 
-if isinstance(assessment_data, dict):
-    formative = assessment_data.get("formative", [])
-    summative = assessment_data.get("summative", "")
-
-    if isinstance(formative, list):
-        formative_text = "; ".join(
-            str(item) for item in formative
+    if isinstance(
+        assessment_data,
+        dict
+    ):
+        formative = assessment_data.get(
+            "formative",
+            []
         )
+
+        summative = assessment_data.get(
+            "summative",
+            ""
+        )
+
+        if isinstance(
+            formative,
+            list
+        ):
+            formative_text = "; ".join(
+                str(item)
+                for item in formative
+            )
+        else:
+            formative_text = str(
+                formative
+            )
+
+        assessment_text = (
+            f"Formative: {formative_text}"
+        )
+
+        if summative:
+            assessment_text += (
+                f"  Summative: {summative}"
+            )
+
     else:
-        formative_text = str(formative)
-
-    assessment_text = (
-        f"Formative: {formative_text}"
-    )
-
-    if summative:
-        assessment_text += (
-            f"  Summative: {summative}"
+        assessment_text = str(
+            assessment_data
         )
 
-else:
-    assessment_text = str(assessment_data)
-
-
-# Get differentiation data
-differentiation_data = lesson_plan.get(
-    "differentiation",
-    ""
-)
-
-if isinstance(differentiation_data, dict):
-
-    support = differentiation_data.get(
-        "support",
+    # =========================================================
+    # DIFFERENTIATION
+    # =========================================================
+    differentiation_data = lesson_plan.get(
+        "differentiation",
         ""
     )
 
-    extension = differentiation_data.get(
-        "extension",
+    if isinstance(
+        differentiation_data,
+        dict
+    ):
+        support = differentiation_data.get(
+            "support",
+            ""
+        )
+
+        extension = differentiation_data.get(
+            "extension",
+            ""
+        )
+
+        differentiation_text = ""
+
+        if support:
+            differentiation_text += (
+                f"Support: {support}"
+            )
+
+        if extension:
+
+            if differentiation_text:
+                differentiation_text += "  "
+
+            differentiation_text += (
+                f"Extension: {extension}"
+            )
+
+    else:
+        differentiation_text = str(
+            differentiation_data
+        )
+
+    # =========================================================
+    # HOMEWORK
+    # =========================================================
+    homework_data = lesson_plan.get(
+        "homework",
         ""
     )
 
-    differentiation_text = ""
-
-    if support:
-        differentiation_text += (
-            f"Support: {support}"
+    if isinstance(
+        homework_data,
+        dict
+    ):
+        homework_text = "; ".join(
+            f"{key}: {value}"
+            for key, value
+            in homework_data.items()
         )
 
-    if extension:
-        if differentiation_text:
-            differentiation_text += "  "
-
-        differentiation_text += (
-            f"Extension: {extension}"
+    else:
+        homework_text = str(
+            homework_data
         )
 
-else:
-    differentiation_text = str(
-        differentiation_data
+    # =========================================================
+    # THREE ROW TABLE
+    # =========================================================
+    bottom_table = document.add_table(
+        rows=0,
+        cols=2
     )
 
-
-# Get homework
-homework_data = lesson_plan.get(
-    "homework",
-    ""
-)
-
-if isinstance(homework_data, dict):
-
-    homework_text = "; ".join(
-        f"{key}: {value}"
-        for key, value in homework_data.items()
+    bottom_table.alignment = (
+        WD_TABLE_ALIGNMENT.CENTER
     )
 
-else:
-    homework_text = str(homework_data)
+    bottom_table.autofit = False
 
+    bottom_widths = [
+        Inches(1.55),
+        Inches(5.67)
+    ]
 
-# Create 3-row x 2-column table
-bottom_table = document.add_table(
-    rows=0,
-    cols=2
-)
+    bottom_data = [
+        (
+            "Assessment",
+            assessment_text
+        ),
+        (
+            "Differentiation",
+            differentiation_text
+        ),
+        (
+            "Homework",
+            homework_text
+        )
+    ]
 
-bottom_table.alignment = WD_TABLE_ALIGNMENT.CENTER
-bottom_table.autofit = False
+    for label, content in bottom_data:
 
+        row = bottom_table.add_row()
 
-bottom_widths = [
-    Inches(1.55),
-    Inches(5.67)
-]
+        label_cell = row.cells[0]
+        content_cell = row.cells[1]
 
+        label_cell.width = (
+            bottom_widths[0]
+        )
 
-# -------------------------
-# Assessment row
-# -------------------------
-row = bottom_table.add_row()
+        content_cell.width = (
+            bottom_widths[1]
+        )
 
-label_cell = row.cells[0]
-content_cell = row.cells[1]
+        set_cell_shading(
+            label_cell,
+            "EDEDED"
+        )
 
-label_cell.width = bottom_widths[0]
-content_cell.width = bottom_widths[1]
+        set_cell_text(
+            label_cell,
+            label,
+            bold=True,
+            size=9.5
+        )
 
-set_cell_shading(
-    label_cell,
-    "EDEDED"
-)
+        set_cell_text(
+            content_cell,
+            content,
+            bold=False,
+            size=9
+        )
 
-set_cell_text(
-    label_cell,
-    "Assessment",
-    bold=True,
-    size=9.5
-)
-
-set_cell_text(
-    content_cell,
-    assessment_text,
-    bold=False,
-    size=9
-)
-
-
-# -------------------------
-# Differentiation row
-# -------------------------
-row = bottom_table.add_row()
-
-label_cell = row.cells[0]
-content_cell = row.cells[1]
-
-label_cell.width = bottom_widths[0]
-content_cell.width = bottom_widths[1]
-
-set_cell_shading(
-    label_cell,
-    "EDEDED"
-)
-
-set_cell_text(
-    label_cell,
-    "Differentiation",
-    bold=True,
-    size=9.5
-)
-
-set_cell_text(
-    content_cell,
-    differentiation_text,
-    bold=False,
-    size=9
-)
-
-
-# -------------------------
-# Homework row
-# -------------------------
-row = bottom_table.add_row()
-
-label_cell = row.cells[0]
-content_cell = row.cells[1]
-
-label_cell.width = bottom_widths[0]
-content_cell.width = bottom_widths[1]
-
-set_cell_shading(
-    label_cell,
-    "EDEDED"
-)
-
-set_cell_text(
-    label_cell,
-    "Homework",
-    bold=True,
-    size=9.5
-)
-
-set_cell_text(
-    content_cell,
-    homework_text,
-    bold=False,
-    size=9
-)
-
-set_table_borders(bottom_table)
-
-
-# ---------------------------------------------------------
-# TEACHER NOTES
-# ---------------------------------------------------------
-teacher_notes = lesson_plan.get(
-    "teacher_notes",
-    ""
-)
-
-if teacher_notes:
-
-    add_section_heading("Teacher Notes")
-
-    add_compact_text(
-        teacher_notes,
-        size=9
+    set_table_borders(
+        bottom_table
     )
-    # ---------------------------------------------------------
+
+    # =========================================================
+    # TEACHER NOTES
+    # =========================================================
+    teacher_notes = lesson_plan.get(
+        "teacher_notes",
+        ""
+    )
+
+    if teacher_notes:
+
+        add_section_heading(
+            "Teacher Notes"
+        )
+
+        add_compact_text(
+            teacher_notes,
+            size=9
+        )
+
+    # =========================================================
     # DURATION VALIDATION
-    # ---------------------------------------------------------
+    # =========================================================
     total_duration = sum(
-        stage.get("duration_minutes", 0)
+        stage.get(
+            "duration_minutes",
+            0
+        )
         for stage in sequence
     )
 
-    validation_paragraph = document.add_paragraph()
+    validation_paragraph = (
+        document.add_paragraph()
+    )
 
     validation_paragraph.alignment = (
         WD_ALIGN_PARAGRAPH.RIGHT
     )
 
-    validation_paragraph.paragraph_format.space_before = Pt(3)
-    validation_paragraph.paragraph_format.space_after = Pt(0)
+    validation_paragraph.paragraph_format.space_before = (
+        Pt(3)
+    )
+
+    validation_paragraph.paragraph_format.space_after = (
+        Pt(0)
+    )
 
     if total_duration == duration:
 
@@ -614,29 +742,35 @@ if teacher_notes:
     else:
 
         validation_text = (
-            f"Duration: {total_duration} minutes "
-            f"(selected: {duration} minutes)"
+            f"Duration: "
+            f"{total_duration} minutes "
+            f"(selected: "
+            f"{duration} minutes)"
         )
 
-    validation_run = validation_paragraph.add_run(
-        validation_text
+    validation_run = (
+        validation_paragraph.add_run(
+            validation_text
+        )
     )
 
     validation_run.bold = True
     validation_run.font.name = "Arial"
     validation_run.font.size = Pt(8.5)
 
-    # ---------------------------------------------------------
-    # SAVE TO MEMORY STREAM
-    # ---------------------------------------------------------
+    # =========================================================
+    # CREATE WORD FILE
+    # =========================================================
     file_stream = BytesIO()
 
-    document.save(file_stream)
+    document.save(
+        file_stream
+    )
 
     file_stream.seek(0)
 
     return file_stream
-
+ 
 def format_av_aids(av_aids):
     """Format selected AV aids for display."""
 
